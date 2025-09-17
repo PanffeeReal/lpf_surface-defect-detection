@@ -56,9 +56,6 @@ class FeatureAlignment(nn.Module):
 
 @HEADS.register_module()
 class DD_simple_SS_Align(RetinaHead):
-    # this head use 3 adjacent levels instead of all levels in origional paper
-    #
-    """Anchor-free head used in `FSAF <https://arxiv.org/abs/1903.00621>`_.
 
     The head contains two subnetworks. The first classifies anchor boxes and
     the second regresses deltas for the anchors (num_anchors is 1 for anchor-
@@ -73,16 +70,6 @@ class DD_simple_SS_Align(RetinaHead):
             Default: None
         **kwargs: Same as its base class in :class:`RetinaHead`
 
-    Example:
-        >>> import torch
-        >>> self = FSAFHead(11, 7)
-        >>> x = torch.rand(1, 7, 32, 32)
-        >>> cls_score, bbox_pred = self.forward_single(x)
-        >>> # Each anchor predicts a score for each class except background
-        >>> cls_per_anchor = cls_score.shape[1] / self.num_anchors
-        >>> box_per_anchor = bbox_pred.shape[1] / self.num_anchors
-        >>> assert cls_per_anchor == self.num_classes
-        >>> assert box_per_anchor == 4
     """
 
     def __init__(self,
@@ -151,10 +138,6 @@ class DD_simple_SS_Align(RetinaHead):
             padding=1)
         self.retina_reg = nn.Conv2d(self.feat_channels, self.num_anchors * 4, 3, padding=1)
 
-        # added by WSK
-        # analyze the effect of the shared conv layers between regression head and
-        # IoU prediction head. The number of conv layers to extract features for
-        # IoU prediction have to be kept to be 4.
         self.shared_conv = 4
         if self.shared_conv < 4:
             self.iou_convs = nn.ModuleList()
@@ -194,13 +177,12 @@ class DD_simple_SS_Align(RetinaHead):
         bias_cls = bias_init_with_prob(0.01)
         normal_init(self.retina_cls, std=0.01, bias=bias_cls)
         normal_init(self.retina_reg, std=0.01)
-        # added by WSK
+
         if self.shared_conv < 4:
             for m in self.iou_convs:
                 normal_init(m.conv, std=0.01)
         # normal_init(self.retina_iou, std=0.01)
 
-        # added by WSK
         if self.use_feature_alignment:
             self.feature_alignment.init_weights()
 
