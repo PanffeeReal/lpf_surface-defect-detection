@@ -1,5 +1,5 @@
 model = dict(
-    type='FSAF',
+    type='TGFS',
     pretrained='torchvision://resnet50',
     backbone=dict(
         type='ResNet',
@@ -11,7 +11,7 @@ model = dict(
         norm_eval=True,
         style='pytorch'),
     neck=dict(
-        type='NASFCOS_FPN',
+        type='FPN',
         in_channels=[256, 512, 1024, 2048],
         out_channels=256,
         start_level=1,
